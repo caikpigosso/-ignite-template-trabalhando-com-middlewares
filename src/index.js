@@ -10,19 +10,69 @@ app.use(cors());
 const users = [];
 
 function checksExistsUserAccount(request, response, next) {
-  // Complete aqui
+  const {username} = request.headers
+if(!username) {
+  return response.status(404).json({error:'Header not found'});
+}
+const usernameAlreadyExists = users.some((user) => user.username === username);
+ if(!usernameAlreadyExists){
+    return  response.status(404).json({  
+   error: 'User not exists'
+  })
+  }
+const userId = users.findIndex(user => user.username === username) 
+
+request.user = users[userId]
+next()
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
-  // Complete aqui
+  const {user} = request
+  if(user.pro === false){
+    if(user.todos.length>=10)
+    return response.status(403).json({error:'User not have permission to create todo'})
+  }
+  next()
 }
 
 function checksTodoExists(request, response, next) {
-  // Complete aqui
+  const {username} = request.headers
+  const {id} = request.params
+  if(!validate(id))
+  {
+  return response.status(400).json({error:'ID not valid uuid'})
+  }
+  const usernameAlreadyExists = users.some((user) => user.username === username);
+ if(!usernameAlreadyExists){
+    return  response.status(404).json({  
+   error: 'User not exists'
+  })
+
+  }
+  const userId = users.findIndex(user => user.username === username) 
+  const todoUser = users[userId].todos.findIndex(todo => todo.id === id);
+  if(todoUser===-1){
+    return  response.status(404).json({error:'Todo not found'})
+  }
+  request.user = users[userId]
+  request.todo=users[userId].todos[todoUser]
+  next()
 }
 
 function findUserById(request, response, next) {
-  // Complete aqui
+ const {id} = request.params
+if(!id) {
+  return response.status(404).json({error:'id not found'});
+}
+const usernameAlreadyExists = users.some((user) => user.id === id);
+ if(!usernameAlreadyExists){
+    return  response.status(404).json({  
+   error: 'User not exists'
+  })
+  }
+const userId = users.findIndex((user) => user.id === id);
+request.user = users[userId]
+next()
 }
 
 app.post('/users', (request, response) => {
